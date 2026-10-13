@@ -5,7 +5,8 @@ change them for a set number of days. When that time is up the files melt and
 can be deleted again.
 
 It runs as a root service (`icefsd`) on Debian or Ubuntu next to the Samba
-shares Veeam writes to. A TUI to watch and manage it is coming next.
+shares Veeam writes to. The `icefs` TUI shows what is frozen and lets you
+change settings and delete melted chains.
 
 ## How it works
 
@@ -47,7 +48,9 @@ it stopped.
 
 ```sh
 go build -o icefsd ./cmd/icefsd
+go build -o icefs ./cmd/icefs
 sudo install -m 0755 icefsd /usr/sbin/icefsd
+sudo install -m 0755 icefs /usr/bin/icefs
 sudo install -d -m 0700 /etc/icefs
 sudo install -m 0600 packaging/config.example.toml /etc/icefs/config.toml
 sudoedit /etc/icefs/config.toml          # set your shares
@@ -62,6 +65,22 @@ Hide the metadata copies from Windows clients by adding this to each share in
 ```ini
 veto files = /.icefs/
 ```
+
+## TUI
+
+```sh
+sudo icefs
+```
+
+- **Shares:** disk use, free space (flagged LOW at the threshold), space held
+  by frozen and melted files, the next melt, and the auto-delete setting.
+- **Chains** (enter on a share): each chain's state, shown as *Frozen*,
+  *Melting* (melts within a day), *Melted* or *Writing* (Veeam is still on
+  it), with time left, size and last backup. Enter shows its files.
+- **Keys:** `s` settings for the share (freeze days, settle minutes,
+  low-space %, auto-delete), `d` delete a melted chain (you type `delete` to
+  confirm), `x` keep a frozen chain frozen for more days, `e` activity log,
+  `r` refresh, `esc` back, `q` quit. The screen refreshes every 5 seconds.
 
 ## Local API
 
