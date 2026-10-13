@@ -1,0 +1,17 @@
+[Unit]
+Description=IceFs - freezes finished Veeam backup files
+After=local-fs.target smbd.service
+
+[Service]
+Type=simple
+ExecStart=/usr/sbin/icefsd -config /etc/icefs/config.toml
+Restart=on-failure
+RestartSec=10
+# Needs root for CAP_LINUX_IMMUTABLE (chattr +i / -i).
+User=root
+StateDirectory=icefs
+StateDirectoryMode=0700
+RuntimeDirectory=icefs
+
+[Install]
+WantedBy=multi-user.target
