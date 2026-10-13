@@ -46,18 +46,24 @@ it stopped.
 
 ## Install
 
+Download `icefs_<version>_amd64.deb` (or `arm64`) from the
+[releases](https://github.com/sabbakix/icefs/releases), then:
+
 ```sh
-go build -o icefsd ./cmd/icefsd
-go build -o icefs ./cmd/icefs
-sudo install -m 0755 icefsd /usr/sbin/icefsd
-sudo install -m 0755 icefs /usr/bin/icefs
-sudo install -d -m 0700 /etc/icefs
-sudo install -m 0600 packaging/config.example.toml /etc/icefs/config.toml
-sudoedit /etc/icefs/config.toml          # set your shares
-sudo install -m 0644 packaging/icefsd.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now icefsd
+sudo apt install ./icefs_0.1.0_amd64.deb
+sudoedit /etc/icefs/config.toml          # add a [[share]] block per backup folder
+sudo systemctl restart icefsd
+sudo icefs                               # open the TUI
 ```
+
+The package installs `icefsd` (service, enabled and started), `icefs` (TUI),
+the systemd unit and `/etc/icefs/config.toml`. Removing the package leaves
+frozen files frozen; IceFs never unfreezes early. Purging also deletes the
+state database in `/var/lib/icefs`.
+
+To build the package yourself: `packaging/deb/build.sh 0.1.0 amd64` (needs Go
+and `dpkg-deb`; the result lands in `dist/`). Pushing a `v*` tag builds both
+architectures and attaches them to a GitHub release.
 
 Hide the metadata copies from Windows clients by adding this to each share in
 `/etc/samba/smb.conf`:

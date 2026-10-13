@@ -1,0 +1,22 @@
+# IceFs configuration. Share settings can also be changed from the TUI (sudo icefs).
+# After adding shares, restart the service: sudo systemctl restart icefsd
+
+db_path = "/var/lib/icefs/state.db"
+socket_path = "/run/icefs/icefs.sock"
+# How often the service scans the shares.
+scan_interval = "1m"
+
+# Add one [[share]] block per Veeam backup folder, then restart icefsd.
+#
+# [[share]]
+#   name = "veeam1"
+#   path = "/srv/backup/veeam1"
+#   # Days a finished backup stays frozen. A chain melts this many days after
+#   # its newest incremental was frozen.
+#   retention_days = 15
+#   # Minutes a file must stay untouched (and closed) before it is frozen.
+#   settle_minutes = 15
+#   # Free-space threshold in percent.
+#   min_free_percent = 15.0
+#   # Delete melted chains, oldest first, when free space is at or below the threshold.
+#   auto_delete = false

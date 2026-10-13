@@ -15,3 +15,8 @@ jobs:
       - run: go test ./...
       # Run again as root so the real immutable-flag test runs on ext4.
       - run: sudo env "PATH=$PATH" "GOCACHE=$(go env GOCACHE)" "GOMODCACHE=$(go env GOMODCACHE)" go test -count=1 ./internal/engine/
+      - run: packaging/deb/build.sh 0.0.0-ci amd64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: icefs-deb
+          path: dist/*.deb

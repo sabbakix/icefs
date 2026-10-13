@@ -1,0 +1,16 @@
+#!/bin/sh
+# Frozen backup files are left frozen on remove and purge: IceFs never
+# unfreezes files early. Clear them by hand with chattr -i if needed.
+set -e
+case "$1" in
+remove)
+	if [ -d /run/systemd/system ]; then
+		systemctl disable icefsd.service >/dev/null 2>&1 || true
+		systemctl daemon-reload || true
+	fi
+	;;
+purge)
+	rm -rf /var/lib/icefs
+	;;
+esac
+exit 0
