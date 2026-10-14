@@ -14,36 +14,44 @@ import (
 )
 
 var (
-	titleStyle   = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("15")).Background(lipgloss.Color("24")).Padding(0, 1)
-	headStyle    = lipgloss.NewStyle().Bold(true).Underline(true)
-	selStyle     = lipgloss.NewStyle().Reverse(true)
-	dimStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
-	errStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("9")).Bold(true)
-	okStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color("10"))
-	frozenStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("14")).Bold(true)
-	meltingStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("11")).Bold(true)
-	meltedStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("10"))
-	writingStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
-	boxStyle     = lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).Padding(0, 1)
+	headStyle       = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color(cIce))
+	ruleStyle       = lipgloss.NewStyle().Foreground(lipgloss.Color(cGlacier))
+	panelTitleStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color(cFrost))
+	keyStyle        = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color(cIce))
+	selStyle        = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color(cFrost)).Background(lipgloss.Color(cDeep))
+	cursorStyle     = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color(cIce)).Background(lipgloss.Color(cDeep))
+	dimStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color(cSlate))
+	errStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color(cAlert)).Bold(true)
+	okStyle         = lipgloss.NewStyle().Foreground(lipgloss.Color(cThaw))
+	frozenStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color(cIce)).Bold(true)
+	meltingStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color(cAmber)).Bold(true)
+	meltedStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color(cThaw))
+	writingStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color(cSlate))
 )
 
 // selected highlights a whole row. Colors inside the row are dropped first:
 // their resets would otherwise end the highlight partway through the line.
+// The cursor sits in the two-column gutter every row starts with.
 func selected(line string) string {
-	return selStyle.Render(ansi.Strip(line))
+	return cursorStyle.Render("▌ ") + selStyle.Render(ansi.Strip(line))
+}
+
+// unselected gives a row the same gutter as a selected one.
+func unselected(line string) string {
+	return "  " + line
 }
 
 // stateLabel turns an engine state into the word shown on screen.
 func stateLabel(s string) string {
 	switch s {
 	case engine.StateFrozen:
-		return frozenStyle.Render("Frozen")
+		return frozenStyle.Render("❄ Frozen")
 	case engine.StateMelting:
-		return meltingStyle.Render("Melting")
+		return meltingStyle.Render("◐ Melting")
 	case engine.StateMelted:
-		return meltedStyle.Render("Melted")
+		return meltedStyle.Render("≈ Melted")
 	case engine.StateWriting, "pending":
-		return writingStyle.Render("Writing")
+		return writingStyle.Render("✎ Writing")
 	}
 	return s
 }
@@ -88,16 +96,22 @@ func when(unix int64) string {
 	return time.Unix(unix, 0).Local().Format("2006-01-02 15:04")
 }
 
-// diskBar draws used space as a 10-cell bar.
+// diskBar draws used space as a 10-cell gauge that warms up as it fills.
 func diskBar(d engine.Disk) string {
 	if d.Total == 0 {
-		return "[          ]"
+		return ruleStyle.Render(strings.Repeat("─", 10))
 	}
-	used := int(float64(d.Total-d.Free) / float64(d.Total) * 10)
-	if used > 10 {
-		used = 10
+	frac := float64(d.Total-d.Free) / float64(d.Total)
+	used := min(10, int(frac*10))
+	c := cSky
+	switch {
+	case frac >= 0.9:
+		c = cAlert
+	case frac >= 0.75:
+		c = cAmber
 	}
-	return "[" + strings.Repeat("#", used) + strings.Repeat(".", 10-used) + "]"
+	return lipgloss.NewStyle().Foreground(lipgloss.Color(c)).Render(strings.Repeat("━", used)) +
+		ruleStyle.Render(strings.Repeat("─", 10-used))
 }
 
 func chainName(c engine.Chain) string {
