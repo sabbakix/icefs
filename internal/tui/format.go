@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/x/ansi"
 
 	"github.com/sabbakix/icefs/internal/engine"
 	"github.com/sabbakix/icefs/internal/veeam"
@@ -25,6 +26,12 @@ var (
 	writingStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
 	boxStyle     = lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).Padding(0, 1)
 )
+
+// selected highlights a whole row. Colors inside the row are dropped first:
+// their resets would otherwise end the highlight partway through the line.
+func selected(line string) string {
+	return selStyle.Render(ansi.Strip(line))
+}
 
 // stateLabel turns an engine state into the word shown on screen.
 func stateLabel(s string) string {

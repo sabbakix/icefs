@@ -8,6 +8,8 @@ It runs as a root service (`icefsd`) on Debian or Ubuntu next to the Samba
 shares Veeam writes to. The `icefs` TUI shows what is frozen and lets you
 change settings and delete melted chains.
 
+![The icefs TUI listing a share's backup chains as Melted, Melting, Frozen and Writing](docs/screenshots/chains.png)
+
 ## How it works
 
 - **Freeze.** Every minute the service scans each share. A `.vbk` or `.vib`
@@ -78,15 +80,45 @@ veto files = /.icefs/
 sudo icefs
 ```
 
-- **Shares:** disk use, free space (flagged LOW at the threshold), space held
-  by frozen and melted files, the next melt, and the auto-delete setting.
-- **Chains** (enter on a share): each chain's state, shown as *Frozen*,
-  *Melting* (melts within a day), *Melted* or *Writing* (Veeam is still on
-  it), with time left, size and last backup. Enter shows its files.
-- **Keys:** `s` settings for the share (freeze days, settle minutes,
-  low-space %, auto-delete), `d` delete a melted chain (you type `delete` to
-  confirm), `x` keep a frozen chain frozen for more days, `e` activity log,
-  `r` refresh, `esc` back, `q` quit. The screen refreshes every 5 seconds.
+The screen refreshes every 5 seconds. `r` refreshes now, `esc` goes back and
+`q` quits.
+
+### Shares
+
+Disk use, free space (flagged LOW at the threshold), space held by frozen and
+melted files, the next melt and the auto-delete setting for every share.
+
+![Shares view](docs/screenshots/shares.png)
+
+### Chains
+
+Press `enter` on a share. Each chain shows its state: *Frozen*, *Melting*
+(melts within a day), *Melted* (can be deleted) or *Writing* (Veeam is still
+on it, not frozen yet), with time left, size and last backup. A `*` marks the
+current chain of a job, which is never auto-deleted (screenshot at the top).
+
+Press `enter` again to see a chain's files.
+
+![Files of one chain](docs/screenshots/files.png)
+
+### Delete, extend and settings
+
+- `d` deletes a melted chain. You type `delete` to confirm; frozen chains are
+  refused.
+- `x` keeps a frozen chain frozen for more days.
+- `s` edits the share's freeze days, settle minutes, low-space % and
+  auto-delete.
+
+![Deleting a melted chain](docs/screenshots/delete.png)
+
+![Share settings](docs/screenshots/settings.png)
+
+### Activity
+
+`e` shows the log of freezes, melts, deletes, refreezes after tampering and
+low-space warnings.
+
+![Activity log](docs/screenshots/activity.png)
 
 ## Local API
 
@@ -115,3 +147,11 @@ go test ./...
 
 Run the tests as root on ext4 or XFS to include the test that sets the real
 immutable flag; elsewhere it is skipped.
+
+The screenshots in `docs/screenshots` come from the real TUI running against
+a demo API with made-up shares (`docs/screenshots/demo`). To retake them after
+a TUI change, with Go, tmux, python3, ImageMagick and Chromium installed:
+
+```sh
+docs/screenshots/capture.sh              # set CHROME=/path/to/chromium if needed
+```

@@ -195,3 +195,16 @@ func TestSettingsForm(t *testing.T) {
 		t.Fatalf("invalid retention accepted:\n%s", m.View())
 	}
 }
+
+func TestCurrentChainMarkerSurvivesLongNames(t *testing.T) {
+	api := newFake()
+	long := "/srv/veeam1/SQL01/SQL01D2026-10-07T220012_3A1F.vbk"
+	api.chains = append(api.chains, engine.Chain{ID: long, Dir: "/srv/veeam1/SQL01", State: engine.StateFrozen,
+		Files: []engine.FileView{{Path: long, Kind: "vbk", State: "frozen"}}})
+	m := run(t, start(t, api), key("enter"))
+	for _, l := range strings.Split(m.View(), "\n") {
+		if strings.Contains(l, "SQL01/SQL01D") && !strings.Contains(l, "~ *") {
+			t.Fatalf("current chain lost its marker: %q", l)
+		}
+	}
+}
