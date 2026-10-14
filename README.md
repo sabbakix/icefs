@@ -5,7 +5,8 @@ change them for a set number of days. When that time is up the files melt and
 can be deleted again.
 
 It runs as a root service (`icefsd`) on Debian or Ubuntu next to the Samba
-shares Veeam writes to. A TUI to watch and manage it is coming next.
+shares Veeam writes to. The `icefs` TUI shows what is frozen and lets you
+change settings and delete melted chains.
 
 ## How it works
 
@@ -45,16 +46,24 @@ it stopped.
 
 ## Install
 
+Download `icefs_<version>_amd64.deb` (or `arm64`) from the
+[releases](https://github.com/sabbakix/icefs/releases), then:
+
 ```sh
-go build -o icefsd ./cmd/icefsd
-sudo install -m 0755 icefsd /usr/sbin/icefsd
-sudo install -d -m 0700 /etc/icefs
-sudo install -m 0600 packaging/config.example.toml /etc/icefs/config.toml
-sudoedit /etc/icefs/config.toml          # set your shares
-sudo install -m 0644 packaging/icefsd.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now icefsd
+sudo apt install ./icefs_0.1.0_amd64.deb
+sudoedit /etc/icefs/config.toml          # add a [[share]] block per backup folder
+sudo systemctl restart icefsd
+sudo icefs                               # open the TUI
 ```
+
+The package installs `icefsd` (service, enabled and started), `icefs` (TUI),
+the systemd unit and `/etc/icefs/config.toml`. Removing the package leaves
+frozen files frozen; IceFs never unfreezes early. Purging also deletes the
+state database in `/var/lib/icefs`.
+
+To build the package yourself: `packaging/deb/build.sh 0.1.0 amd64` (needs Go
+and `dpkg-deb`; the result lands in `dist/`). Pushing a `v*` tag builds both
+architectures and attaches them to a GitHub release.
 
 Hide the metadata copies from Windows clients by adding this to each share in
 `/etc/samba/smb.conf`:
@@ -62,6 +71,22 @@ Hide the metadata copies from Windows clients by adding this to each share in
 ```ini
 veto files = /.icefs/
 ```
+
+## TUI
+
+```sh
+sudo icefs
+```
+
+- **Shares:** disk use, free space (flagged LOW at the threshold), space held
+  by frozen and melted files, the next melt, and the auto-delete setting.
+- **Chains** (enter on a share): each chain's state, shown as *Frozen*,
+  *Melting* (melts within a day), *Melted* or *Writing* (Veeam is still on
+  it), with time left, size and last backup. Enter shows its files.
+- **Keys:** `s` settings for the share (freeze days, settle minutes,
+  low-space %, auto-delete), `d` delete a melted chain (you type `delete` to
+  confirm), `x` keep a frozen chain frozen for more days, `e` activity log,
+  `r` refresh, `esc` back, `q` quit. The screen refreshes every 5 seconds.
 
 ## Local API
 

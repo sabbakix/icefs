@@ -1,0 +1,14 @@
+#!/bin/sh
+set -e
+if [ "$1" = "configure" ]; then
+	install -d -m 0700 /var/lib/icefs
+	if [ -d /run/systemd/system ]; then
+		systemctl daemon-reload
+		systemctl enable icefsd.service >/dev/null 2>&1 || true
+		systemctl restart icefsd.service || true
+	fi
+	if ! grep -q '^\[\[share\]\]' /etc/icefs/config.toml 2>/dev/null; then
+		echo "icefs: no shares configured yet. Edit /etc/icefs/config.toml, then: sudo systemctl restart icefsd"
+	fi
+fi
+exit 0
