@@ -98,7 +98,7 @@ func (m Model) sharesView() string {
 			until(s.NextMelt, now), auto,
 		}, w)
 		if i == m.shareIdx {
-			line = selStyle.Render(line)
+			line = selected(line)
 		}
 		b.WriteString(line + "\n")
 	}
@@ -129,11 +129,12 @@ func (m Model) chainsView() string {
 		}
 		name := chainName(c)
 		if !c.Closed {
-			name += " *"
+			// Shorten the name first so a long one cannot push the marker out.
+			name = strings.TrimRight(pad(name, w[0]-2), " ") + " *"
 		}
 		line := row([]string{name, stateLabel(c.State), melts, fmt.Sprint(len(c.Files)), humanBytes(c.Bytes), when(c.Newest)}, w)
 		if i == m.chainIdx {
-			line = selStyle.Render(line)
+			line = selected(line)
 		}
 		b.WriteString(line + "\n")
 	}
