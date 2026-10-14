@@ -77,6 +77,9 @@ def line_html(line, st):
             elif c in (38, 48) and i + 2 < len(codes) and codes[i + 1] == 5:
                 st["fg" if c == 38 else "bg"] = color(codes[i + 2])
                 i += 2
+            elif c in (38, 48) and i + 4 < len(codes) and codes[i + 1] == 2:
+                st["fg" if c == 38 else "bg"] = "#%02x%02x%02x" % tuple(codes[i + 2:i + 5])
+                i += 4
             i += 1
     return "".join(out)
 
@@ -94,7 +97,7 @@ html,body{{margin:0;background:transparent}}
 .bar{{height:34px;position:relative;font:13px system-ui,sans-serif;color:#8a8f98;text-align:center;line-height:34px}}
 .dots{{position:absolute;left:14px;top:11px}}
 .dots i{{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:7px}}
-pre{{margin:0;padding:6px 22px 20px;font:14px/1.3 "DejaVu Sans Mono",Menlo,monospace;color:{FG}}}
+pre{{margin:0;padding:6px 22px 20px;font:14px/1.17 "DejaVu Sans Mono",Menlo,monospace;color:{FG}}}
 </style><div class="win"><div class="bar"><span class="dots"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></span>{html.escape(title)}</div><pre>{body}</pre></div>""")
 
 

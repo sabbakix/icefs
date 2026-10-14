@@ -19,7 +19,7 @@ demo=$!
 trap 'kill $demo; tmux kill-session -t icefs-shots 2>/dev/null; rm -rf "$tmp"' EXIT
 sleep 1
 
-tmux new-session -d -s icefs-shots -x 104 -y 22 "TERM=xterm-256color $tmp/icefs -socket $sock"
+tmux new-session -d -s icefs-shots -x 104 -y 22 "TERM=xterm-256color COLORTERM=truecolor $tmp/icefs -socket $sock"
 sleep 1
 
 key() { for k in "$@"; do tmux send-keys -t icefs-shots "$k"; sleep 0.4; done; }

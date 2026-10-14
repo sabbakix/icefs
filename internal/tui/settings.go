@@ -93,28 +93,26 @@ func (f settingsForm) values() (client.ShareSettings, error) {
 
 func (f settingsForm) view() string {
 	var b strings.Builder
-	b.WriteString(headStyle.Render("Settings for "+f.share) + "\n\n")
-	for i, in := range f.inputs {
-		marker := "  "
+	b.WriteString("\n")
+	field := func(i int, label, value string) {
 		if f.focus == i {
-			marker = "> "
+			b.WriteString(keyStyle.Render("❯ ") + panelTitleStyle.Render(pad(label, 24)) + value + "\n")
+		} else {
+			b.WriteString("  " + dimStyle.Render(pad(label, 24)) + value + "\n")
 		}
-		b.WriteString(marker + pad(settingLabels[i], 24) + in.View() + "\n")
 	}
-	marker := "  "
-	if f.focus == 3 {
-		marker = "> "
+	for i, in := range f.inputs {
+		field(i, settingLabels[i], in.View())
 	}
-	box := "[ ]"
+	box := dimStyle.Render("[ ]")
 	if f.autoDelete {
-		box = "[x]"
+		box = keyStyle.Render("[x]")
 	}
 	threshold := strings.TrimSpace(f.inputs[2].Value())
-	b.WriteString(marker + pad("Auto-delete melted", 24) + box + dimStyle.Render(" when free space is "+threshold+"% or less") + "\n\n")
-	b.WriteString(dimStyle.Render("A longer freeze extends frozen chains now. A shorter one only\napplies to files frozen from now on.") + "\n\n")
+	field(3, "Auto-delete melted", box+dimStyle.Render(" when free space is "+threshold+"% or less"))
+	b.WriteString("\n" + dimStyle.Render("A longer freeze extends frozen chains now. A shorter one only\napplies to files frozen from now on.") + "\n")
 	if f.err != nil {
-		b.WriteString(errStyle.Render(f.err.Error()) + "\n")
+		b.WriteString("\n" + errStyle.Render("✖ "+f.err.Error()) + "\n")
 	}
-	b.WriteString(dimStyle.Render("tab/up/down move  space toggle  enter save  esc cancel"))
-	return boxStyle.Render(b.String())
+	return b.String()
 }
